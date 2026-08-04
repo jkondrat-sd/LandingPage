@@ -33,8 +33,8 @@ const Footer = () => {
                   <Image
                     src="/logo_simawas_pagi_detail_long.svg"
                     alt="Simawas Pagi"
-                    width={466}
-                    height={48}
+                    width={600}
+                    height={96}
                   />
                   <span className="sr-only"></span>
                 </a>

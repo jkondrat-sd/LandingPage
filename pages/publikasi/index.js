@@ -85,7 +85,7 @@ export default function Publikasi({ BASE_URL_API_V4 }) {
   return (
     <>
       <Head>
-        <title>Dataset | Simawas Pagi</title>
+        <title>Publikasi | Simawas Pagi</title>
         <meta
           name="description"
           content="Sistem Informasi Kewaspadaan Pangan dan Gizi "

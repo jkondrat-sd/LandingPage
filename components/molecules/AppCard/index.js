@@ -25,11 +25,11 @@ function AppCard({ app }) {
             className="dkpp-card-art"
             style={{ background: app.artBg || "#E4F1E4" }}
           >
-            {/* Logo Jawa Barat */}
+            {/* Logo / Gambar Card — diambil dari artImage per card, fallback ke logo Jawa Barat */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logos/jawa_barat_logo.svg"
-              alt="Logo Jawa Barat"
+              src={app.artImage || "/logos/jawa_barat_logo.svg"}
+              alt={app.artImage ? `Logo ${app.name}` : "Logo Jawa Barat"}
               className="dkpp-jabar-logo"
             />
 
@@ -155,17 +155,18 @@ function AppCard({ app }) {
         }
 
         .dkpp-jabar-logo {
-          height: 100px;
-          width: auto;
-          object-fit: contain;
-          position: relative;
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
           z-index: 2;
-          filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
-          transition: transform 0.3s ease;
+          transition: transform 0.4s ease;
         }
 
         .dkpp-card:hover .dkpp-jabar-logo {
-          transform: scale(1.08);
+          transform: scale(1.06);
         }
 
         .dkpp-code-tag {

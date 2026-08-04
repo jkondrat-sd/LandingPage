@@ -11,6 +11,9 @@ export const aplikasiDkpp = [
     urlText: "temanonair.jabarprov.go.id",
     btnColor: "#F5A623",
     artBg: "#FDEFD6",
+    // Ganti null dengan path gambar setelah file dimasukkan ke /public/logos/cards/
+    // Contoh: 
+    artImage: "/logos/cards/logo_temanonair.png",
     searchTags: "teman on air ayam sentul itik rambon doc unggas",
     isHere: false,
   },
@@ -25,6 +28,7 @@ export const aplikasiDkpp = [
     urlText: "dkpp.jabarprov.go.id",
     btnColor: "#0F6B37",
     artBg: "#E4F1E4",
+    artImage: "/logos/cards/logo_dkpp.png",
     searchTags: "website dkpp dinas ketahanan pangan peternakan resmi",
     isHere: false,
   },
@@ -39,6 +43,8 @@ export const aplikasiDkpp = [
     urlText: "serasi.jabarprov.go.id",
     btnColor: "#A8763E",
     artBg: "#F3E7D6",
+    // Ganti null dengan: 
+    artImage: "/logos/cards/logo_serasi.png",
     searchTags: "serasi sapi perah rekording sistem",
     isHere: false,
   },
@@ -53,23 +59,12 @@ export const aplikasiDkpp = [
     urlText: "sikasepbunikasih.jabarprov.go.id",
     btnColor: "#3568A8",
     artBg: "#E1EAF5",
+    // Ganti null dengan: 
+    artImage: "/logos/cards/logo_sikasep.png",
     searchTags: "sikasep bunikasih sapi perah database",
     isHere: false,
   },
-  {
-    id: "109010107",
-    name: "Pemantauan Lalulintas Ternak",
-    owner: "Dinas Ketahanan Pangan & Peternakan",
-    ownerColor: "#D9713C",
-    description:
-      "Pantau pergerakan dan lalu lintas ternak antarwilayah secara terpusat berbasis web.",
-    href: "https://silatjawara.jabarprov.go.id",
-    urlText: "silatjawara.jabarprov.go.id",
-    btnColor: "#D9713C",
-    artBg: "#FBE7DA",
-    searchTags: "pemantauan lalulintas ternak silatjawara truk",
-    isHere: false,
-  },
+
   {
     id: "109010108",
     name: "SIMAPAN",
@@ -81,6 +76,8 @@ export const aplikasiDkpp = [
     urlText: "simapan.jabarprov.go.id",
     btnColor: "#0E8C7F",
     artBg: "#DCF3F0",
+    // Ganti null dengan: "/logos/cards/logo_simapan.png"
+    artImage: "/logos/cards/logo_simapan.png",
     searchTags: "simapan pelatihan peternakan ketahanan pangan",
     isHere: false,
   },
@@ -95,6 +92,7 @@ export const aplikasiDkpp = [
     urlText: "simawas.jabarprov.go.id",
     btnColor: "#0F6B37",
     artBg: "#E4F1E4",
+    artImage: "/logos/cards/logo_simawas.png",
     searchTags: "simawaspagi early warning pangan gizi",
     isHere: true,
   },
