@@ -1,0 +1,31 @@
+[{
+  "_id": {
+    "$oid": "62158fa45e47f8e9ca669097"
+  },
+  "name": "group_user",
+  "role_enum": 4
+},{
+  "_id": {
+    "$oid": "62158fcb5e47f8e9ca669098"
+  },
+  "name": "user",
+  "role_enum": 5
+},{
+  "_id": {
+    "$oid": "62158fd75e47f8e9ca669099"
+  },
+  "name": "group_admin",
+  "role_enum": 3
+},{
+  "_id": {
+    "$oid": "621590165e47f8e9ca66909a"
+  },
+  "name": "admin",
+  "role_enum": 2
+},{
+  "_id": {
+    "$oid": "6215902d5e47f8e9ca66909b"
+  },
+  "name": "super_admin",
+  "role_enum": 1
+}]

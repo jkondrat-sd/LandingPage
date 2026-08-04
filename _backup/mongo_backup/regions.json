@@ -1,0 +1,136 @@
+[{
+  "_id": {
+    "$oid": "622187c02acef4237d0ebcfa"
+  },
+  "name": "kabupaten bogor"
+},{
+  "_id": {
+    "$oid": "622187ee2acef4237d0ebcfb"
+  },
+  "name": "kabupaten sukabumi"
+},{
+  "_id": {
+    "$oid": "622187fc2acef4237d0ebcfc"
+  },
+  "name": "kabupaten cianjur"
+},{
+  "_id": {
+    "$oid": "622188072acef4237d0ebcfd"
+  },
+  "name": "kabupaten bandung"
+},{
+  "_id": {
+    "$oid": "622188162acef4237d0ebcfe"
+  },
+  "name": "kabupaten garut"
+},{
+  "_id": {
+    "$oid": "622188272acef4237d0ebcff"
+  },
+  "name": "kabupaten tasikmalaya"
+},{
+  "_id": {
+    "$oid": "6221883a2acef4237d0ebd00"
+  },
+  "name": "kabupaten ciamis"
+},{
+  "_id": {
+    "$oid": "622188492acef4237d0ebd01"
+  },
+  "name": "kabupaten kuningan"
+},{
+  "_id": {
+    "$oid": "622188542acef4237d0ebd02"
+  },
+  "name": "kabupaten cirebon"
+},{
+  "_id": {
+    "$oid": "622188602acef4237d0ebd03"
+  },
+  "name": "kabupaten majalengka"
+},{
+  "_id": {
+    "$oid": "622188752acef4237d0ebd04"
+  },
+  "name": "kabupaten sumedang"
+},{
+  "_id": {
+    "$oid": "6221889d2acef4237d0ebd05"
+  },
+  "name": "kabupaten indramayu"
+},{
+  "_id": {
+    "$oid": "622188a92acef4237d0ebd06"
+  },
+  "name": "kabupaten subang"
+},{
+  "_id": {
+    "$oid": "622188bb2acef4237d0ebd07"
+  },
+  "name": "kabupaten purwakarta"
+},{
+  "_id": {
+    "$oid": "622188c42acef4237d0ebd08"
+  },
+  "name": "kabupaten karawang"
+},{
+  "_id": {
+    "$oid": "622188d12acef4237d0ebd09"
+  },
+  "name": "kabupaten bekasi"
+},{
+  "_id": {
+    "$oid": "622188e12acef4237d0ebd0a"
+  },
+  "name": "kabupaten bandung barat"
+},{
+  "_id": {
+    "$oid": "622188f32acef4237d0ebd0b"
+  },
+  "name": "kabupaten pangandaran"
+},{
+  "_id": {
+    "$oid": "6221890b2acef4237d0ebd0c"
+  },
+  "name": "kota bogor"
+},{
+  "_id": {
+    "$oid": "622189172acef4237d0ebd0d"
+  },
+  "name": "kota sukabumi"
+},{
+  "_id": {
+    "$oid": "622189252acef4237d0ebd0e"
+  },
+  "name": "kota bandung"
+},{
+  "_id": {
+    "$oid": "622189312acef4237d0ebd0f"
+  },
+  "name": "kota cirebon"
+},{
+  "_id": {
+    "$oid": "6221893c2acef4237d0ebd10"
+  },
+  "name": "kota bekasi"
+},{
+  "_id": {
+    "$oid": "622189442acef4237d0ebd11"
+  },
+  "name": "kota depok"
+},{
+  "_id": {
+    "$oid": "622189512acef4237d0ebd12"
+  },
+  "name": "kota cimahi"
+},{
+  "_id": {
+    "$oid": "622189692acef4237d0ebd13"
+  },
+  "name": "kota tasikmalaya"
+},{
+  "_id": {
+    "$oid": "622189762acef4237d0ebd14"
+  },
+  "name": "kota banjar"
+}]

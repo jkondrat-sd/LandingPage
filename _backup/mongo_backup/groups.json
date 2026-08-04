@@ -1,0 +1,37 @@
+[{
+  "_id": {
+    "$oid": "62158d3b5e47f8e9ca669088"
+  },
+  "name": "DKPP",
+  "description": "Dinas Ketahanan Pangan dan Peternakan merupakan perangkat daerah di Provinsi Jawa Barat yang melaksanakan tugas dan pokok mengenai ketahanan pangan dan peternakan.",
+  "address": "Jl. Kawaluyaan Indah Raya No.6 Lt.5 Soekarno-Hatta",
+  "phone_number": "022-87327711",
+  "fax": "022-87354100",
+  "email": "dkpp@jabarprov.go.id",
+  "logo_url": "",
+  "group_enum": 1
+},{
+  "_id": {
+    "$oid": "6215dafb5e47f8e9ca669133"
+  },
+  "name": "PUSKOM DKPP",
+  "description": "PUSAT KOMADO DKPP",
+  "address": "Jl. Kawaluyaan Indah Raya No.6 Lt.5 Soekarno-Hatta",
+  "phone_number": "-",
+  "fax": "-",
+  "email": "puskomdkpp@gmail.com",
+  "logo_url": "",
+  "group_enum": 2
+},{
+  "_id": {
+    "$oid": "6215db345e47f8e9ca669135"
+  },
+  "name": "Ungrouped",
+  "description": "Ungrouped, ask administrator",
+  "address": "-",
+  "phone_number": "-",
+  "fax": "-",
+  "email": "-",
+  "logo_url": "",
+  "group_enum": 3
+}]

@@ -1,0 +1,286 @@
+def remoteServer = [:]
+
+pipeline {
+    agent any
+    environment {
+        NEXT_PUBLIC_BASE_URL = "https://simawas.jabarprov.go.id/"
+        GENERATE_SOURCEMAP = false
+        BASE_URL = "https://simawas.jabarprov.go.id/"
+        BASE_URL_API_V1 = "https://simawas.jabarprov.go.id/api/v1"
+        BASE_URL_API_V2 = "https://simawas.jabarprov.go.id/api/v2"
+        BASE_URL_API_V1_CLIENT = "https://simawas.jabarprov.go.id/api/client/v1"
+        BASE_URL_API_V2_CLIENT = "https://simawas.jabarprov.go.id/api/client/v2"
+        BASE_URL_API_V3_CLIENT = "https://simawas.jabarprov.go.id/api/client/v3"
+        BASE_URL_API_V4_CLIENT = "https://simawas.jabarprov.go.id/api/client/v4"
+        BASE_URL_API_V4 = "https://simawas.jabarprov.go.id/api/v4"
+        BASE_SSO_JABAR = "https://sso.jabarprov.go.id/realms/ssojabar"
+        SSO_JABAR_CLIENT_ID = "simawas"
+        PORT = "3000"
+
+        // SERVER ENV
+        ENV = "prod"
+        PROJECT_IMAGE_NAME = "simawas-next"
+        PROJECT_CONTAINER_NAME = "simawas-next"
+        REGISTRY_URL = credentials("REGISTRY_URL")
+        REGISTRY_USERNAME = credentials("REGISTRY_USERNAME")
+        REGISTRY_PASSWORD = credentials("REGISTRY_PASSWORD")
+
+        PRODUCTION_SSH_NAME = credentials("PRODUCTION_SSH_NAME")
+        PRODUCTION_SSH_USER = credentials("PRODUCTION_SSH_USER")
+        PRODUCTION_SSH_PASSWORD = credentials("PRODUCTION_SSH_PASSWORD")
+        PRODUCTION_SSH_HOST = credentials("PRODUCTION_SSH_HOST")
+        PRODUCTION_SSH_PORT = credentials("PRODUCTION_SSH_PORT")
+        
+    }
+
+    options {
+      gitlabBuilds(builds: 
+      [
+        "local-docker-build",
+        "local-docker-image-push",
+        "local-delete-prune-images",
+        "production-pull-image",
+        "production-stop-container",
+        "production-delete-container",
+        "production-docker-run",
+        "production-delete-prune-image",
+
+      ])
+    }
+    
+    stages {
+        
+        // initial requirment data process
+        stage('Local Initial') {
+            steps {
+                script {
+                    try {
+                        // ambil short id commit
+                        env.commitIDDev = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                        // ambil versi dari project
+                        def packageJson = readJSON file: 'package.json'
+                        def projectVers = "${ENV}-" + packageJson.version + "-${env.commitIDDev}"
+                        env.projectTAG = projectVers
+
+                        // login docker registry
+                        sh "echo $REGISTRY_PASSWORD | /usr/bin/docker login -u $REGISTRY_USERNAME --password-stdin ${REGISTRY_URL}"
+                        
+                        // Define the SSH server details
+                        
+                        remoteServer.name = PRODUCTION_SSH_NAME
+                        remoteServer.user = PRODUCTION_SSH_USER
+                        remoteServer.password = PRODUCTION_SSH_PASSWORD
+                        remoteServer.host = PRODUCTION_SSH_HOST
+                        remoteServer.port = PRODUCTION_SSH_PORT.toInteger()
+                        remoteServer.allowAnyHosts = true
+
+                        sshCommand remote: remoteServer, command: """
+                            echo "test ssh success"
+                        """
+
+                    }catch (Exception err) {
+                        currentBuild.result = 'FAILURE'
+                        error "Failed Init: ${err}"
+                    }
+                }
+            }
+        }
+
+        // build image
+        stage("Local Docker Build") {
+            steps {
+                script {
+                    try {
+                        updateGitlabCommitStatus name: 'local-docker-build', state: 'running'
+
+                        sh "/usr/bin/docker build -t ${REGISTRY_URL}/${PROJECT_IMAGE_NAME}:${env.projectTAG} -f Dockerfile ."
+
+                        updateGitlabCommitStatus name: 'local-docker-build', state: 'success'
+                    } catch (err) {
+                        updateGitlabCommitStatus name: 'local-docker-build', state: 'failed'
+                        currentBuild.result = 'FAILURE'
+                        error "Failed Docker Build: ${err}"
+                    }
+                }
+            }
+        }
+
+        // push image to registry
+        stage('Local Push Docker Image To Registry') {
+            steps {
+                script {
+                    try {
+                        updateGitlabCommitStatus name: 'local-docker-image-push', state: 'running'
+
+                        sh "/usr/bin/docker push ${REGISTRY_URL}/${PROJECT_IMAGE_NAME}:${env.projectTAG}"
+                        
+                        updateGitlabCommitStatus name: 'local-docker-image-push', state: 'success'
+                    } catch (err) {
+                        updateGitlabCommitStatus name: 'local-docker-image-push', state: 'failed'
+                        currentBuild.result = 'FAILURE'
+                        error "Failed Docker Build: ${err}"
+                    }
+                }
+            }
+        }
+
+        // delete local image and prune after push to registry
+        stage('Local Delete And Prune Images'){
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        try{
+                            updateGitlabCommitStatus name: 'local-delete-prune-images', state: 'running'
+                            
+                            // Delete the images
+                            sh """
+                            /usr/bin/docker images --filter=reference='${REGISTRY_URL}/${PROJECT_IMAGE_NAME}:${ENV}-*' --format "{{.Repository}}:{{.Tag}}" | sort | tail -n +4 | xargs -I {} docker rmi {}
+                            """
+
+                            // Prune images
+                            sh "/usr/bin/docker image prune -f"
+
+                            updateGitlabCommitStatus name: 'local-delete-prune-images', state: 'success'
+                        }catch (Exception err) {
+                            updateGitlabCommitStatus name: 'local-delete-prune-images', state: 'success'
+                            error "Failed Local Delete And Prune Images: ${err}"
+                        }
+                    }
+                }
+            }
+        }
+
+        // pull image to production
+        stage('Production Pull Image') {
+            steps {
+                script {
+                    try  {
+                    updateGitlabCommitStatus name: 'production-pull-image', state: 'running'
+
+                    sshCommand remote: remoteServer, command: """
+                        # Login docker registry
+                        echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USERNAME --password-stdin ${REGISTRY_URL}
+                        
+                        # Pull the Docker image from your registry
+                        /usr/bin/docker pull ${REGISTRY_URL}/${PROJECT_IMAGE_NAME}:${env.projectTAG}
+                    """
+
+                    updateGitlabCommitStatus name: 'production-pull-image', state: 'success'
+                    } catch (err) {
+                        updateGitlabCommitStatus name: 'production-pull-image', state: 'failed'
+                        error "Failed Production Pull Image: ${err}"
+                    }
+                }
+            }
+        }
+
+        // stop production container
+        stage('Production Stop Docker Container') {
+                steps {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        script {
+                            try {
+                                updateGitlabCommitStatus name: 'production-stop-container', state: 'running'
+
+                                sshCommand remote: remoteServer, command: """
+                                /usr/bin/docker stop ${PROJECT_CONTAINER_NAME}
+                                """
+
+                                updateGitlabCommitStatus name: 'production-stop-container', state: 'success'
+                            } catch (Exception err) {
+                                updateGitlabCommitStatus name: 'production-stop-container', state: 'success'
+                                error "Failed Production Stop Docker Container: ${err}"
+                            }
+                        }
+                }
+            } 
+        }
+
+        // delete production container
+        stage('Production Delete Docker Container') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        try {
+                            updateGitlabCommitStatus name: 'production-delete-container', state: 'running'
+
+                            sshCommand remote: remoteServer, command: """
+                            /usr/bin/docker rm ${PROJECT_CONTAINER_NAME}
+                            """
+
+                            updateGitlabCommitStatus name: 'production-delete-container', state: 'success'
+
+                        } catch (Exception err) {
+                            updateGitlabCommitStatus name: 'production-delete-container', state: 'success'
+                            error "Failed Production Stop Docker Container: ${err}"
+                        }
+                    }
+                }
+            }
+        }
+
+        // run production container
+        stage("Production Docker Run") {
+            when {
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+            }
+            steps {
+                script {
+                    try{
+                        updateGitlabCommitStatus name: 'production-docker-run', state: 'running'
+                        sshCommand remote: remoteServer, command: """
+                            /usr/bin/docker run -d --restart always \
+                            --cpus='4' \
+                            --memory='4g' \
+                            -p ${PORT}:${PORT} \
+                            -e NEXT_PUBLIC_BASE_URL='$NEXT_PUBLIC_BASE_URL' \
+                            -e GENERATE_SOURCEMAP='$GENERATE_SOURCEMAP' \
+                            -e BASE_URL='$BASE_URL' \
+                            -e BASE_URL_API_V1='$BASE_URL_API_V1' \
+                            -e BASE_URL_API_V2='$BASE_URL_API_V2' \
+                            -e BASE_URL_API_V1_CLIENT='$BASE_URL_API_V1_CLIENT' \
+                            -e BASE_URL_API_V2_CLIENT='$BASE_URL_API_V2_CLIENT' \
+                            -e BASE_URL_API_V3_CLIENT='$BASE_URL_API_V3_CLIENT' \
+                            -e BASE_URL_API_V4_CLIENT='$BASE_URL_API_V4_CLIENT' \
+                            -e BASE_URL_API_V4='$BASE_URL_API_V4' \
+                            -e BASE_SSO_JABAR='$BASE_SSO_JABAR' \
+                            -e SSO_JABAR_CLIENT_ID='$SSO_JABAR_CLIENT_ID' \
+                            --network global-network \
+                            --name ${PROJECT_CONTAINER_NAME} ${REGISTRY_URL}/${PROJECT_IMAGE_NAME}:${env.projectTAG}
+                        """
+                        updateGitlabCommitStatus name: 'production-docker-run', state: 'success'
+                    } catch (err) {
+                        updateGitlabCommitStatus name: 'production-docker-run', state: 'failed'
+                        currentBuild.result = 'FAILURE'
+                        error "Failed Production Docker Run: ${err}"
+                    }
+                }
+            } 
+        }
+
+        // delete production image and prune
+        stage('Production Delete Image And Prune') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        try {
+                            updateGitlabCommitStatus name: 'production-delete-prune-image', state: 'running'
+
+                            sshCommand remote: remoteServer, command: """
+                            /usr/bin/docker images --filter=reference='${REGISTRY_URL}/${PROJECT_IMAGE_NAME}:${ENV}-*' --format "{{.Repository}}:{{.Tag}}" | sort | tail -n +4 | xargs -I {} docker rmi {}
+
+                            /usr/bin/docker image prune -f
+                            """
+
+                            updateGitlabCommitStatus name: 'production-delete-prune-image', state: 'success'
+                        } catch (Exception err) {
+                            updateGitlabCommitStatus name: 'production-delete-prune-image', state: 'success'
+                            error "Failed Production Delete Image And Prune: ${err}"
+                        }
+                    }
+                }
+            }
+        }     
+
+    }
+}

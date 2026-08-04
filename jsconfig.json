@@ -1,0 +1,37 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@/components/*": [
+                "components/*"
+            ],
+            "@/utils/*": [
+                "utils/*"
+            ],
+            "@/server/*": [
+                "server/*"
+            ],
+            "@/pkg/*": [
+                "pkg/*"
+            ],
+            "@/hooks/*": [
+                "hooks/*"
+            ],
+            "@/data/*": [
+                "data/*"
+            ],
+            "@/atoms/*": [
+                "components/atoms/*"
+            ],
+            "@/molecules/*": [
+                "components/molecules/*"
+            ],
+            "@/organisms/*": [
+                "components/organisms/*"
+            ],
+            "@/legacy_components/*": [
+                "components/_legacy/*"
+            ],
+        }
+    }
+}

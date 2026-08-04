@@ -1,0 +1,179 @@
+pipeline {
+
+    agent any
+
+    environment {
+        NEXT_PUBLIC_BASE_URL = "https://dev-simawas.jabarprov.go.id/"
+        GENERATE_SOURCEMAP = false
+        BASE_URL = "https://dev-simawas.jabarprov.go.id/"
+        BASE_URL_API_V1 = "https://dev-simawas.jabarprov.go.id/api/v1"
+        BASE_URL_API_V2 = "https://dev-simawas.jabarprov.go.id/api/v2"
+        BASE_URL_API_V1_CLIENT = "https://dev-simawas.jabarprov.go.id/api/client/v1"
+        BASE_URL_API_V2_CLIENT = "https://dev-simawas.jabarprov.go.id/api/client/v2"
+        BASE_URL_API_V3_CLIENT = "https://dev-simawas.jabarprov.go.id/api/client/v3"
+        BASE_URL_API_V4_CLIENT = "https://dev-simawas.jabarprov.go.id/api/client/v4"
+        BASE_URL_API_V4= "https://dev-simawas.jabarprov.go.id/api/v4"
+        BASE_SSO_JABAR = "https://sso.jabarprov.go.id/realms/ssojabar"
+        SSO_JABAR_CLIENT_ID = "dev-simawas"
+        PORT = "3000"
+    }
+
+    options {
+      gitlabBuilds(builds: 
+      [
+        "docker-build",
+        "docker-stop-container",
+        "docker-delete-container",
+        "docker-run",
+        "docker-delete-image",
+        "docker-image-prune",
+      ])
+    }
+
+    stages {
+        
+        stage('Initial') {
+            steps {
+                script {
+                    try {
+                        env.commitIDDev = "dev-" + sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    }catch (err) {
+                        echo "Failed Init: ${err}"
+                        currentBuild.result = 'FAILURE'
+                        error "Failed Init: ${err}"
+                    }
+                }
+            }
+        }
+
+        stage("Docker Build") {
+            steps {
+                script {
+                    try {
+                        updateGitlabCommitStatus name: 'docker-build', state: 'running'
+                        sh "/usr/bin/docker build -t simawas-next:${env.commitIDDev} -f Dockerfile.advance ."
+                        updateGitlabCommitStatus name: 'docker-build', state: 'success'
+                    } catch (err) {
+                        updateGitlabCommitStatus name: 'docker-build', state: 'failed'
+                        currentBuild.result = 'FAILURE'
+                        error "Failed Docker Build: ${err}"
+                    }
+                }
+            }
+        }
+
+        stage('Stop Container') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        try{
+                            updateGitlabCommitStatus name: 'docker-stop-container', state: 'running'
+                            sh "/usr/bin/docker stop simawas-next"
+                            updateGitlabCommitStatus name: 'docker-stop-container', state: 'success'
+                        }catch (Exception err) {
+                             updateGitlabCommitStatus name: 'docker-stop-container', state: 'success'
+                             error "Failed Stop Container: ${err}"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Delete Docker Containers') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        try{
+                            updateGitlabCommitStatus name: 'docker-delete-container', state: 'running'
+                            sh "/usr/bin/docker rm simawas-next"
+                            updateGitlabCommitStatus name: 'docker-delete-container', state: 'success'
+                        }catch (Exception err) {
+                            updateGitlabCommitStatus name: 'docker-delete-container', state: 'success'
+                            error "Failed Delete Docker Containers: ${err}"
+                        }
+                    }
+                }
+            }
+        }       
+
+        stage("Docker Run") {
+            when {
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+            }
+            steps {
+                script {
+                        try{
+                        updateGitlabCommitStatus name: 'docker-run', state: 'running'
+
+                        sh "/usr/bin/docker run \
+                        -d \
+                        --restart always \
+                        --cpus='4' \
+                        --memory='4g' \
+                        -p ${PORT}:${PORT} \
+                        -e NEXT_PUBLIC_BASE_URL='$NEXT_PUBLIC_BASE_URL' \
+                        -e GENERATE_SOURCEMAP='$GENERATE_SOURCEMAP' \
+                        -e BASE_URL='$BASE_URL' \
+                        -e BASE_URL_API_V1='$BASE_URL_API_V1' \
+                        -e BASE_URL_API_V2='$BASE_URL_API_V2' \
+                        -e BASE_URL_API_V1_CLIENT='$BASE_URL_API_V1_CLIENT' \
+                        -e BASE_URL_API_V2_CLIENT='$BASE_URL_API_V2_CLIENT' \
+                        -e BASE_URL_API_V3_CLIENT='$BASE_URL_API_V3_CLIENT' \
+                        -e BASE_URL_API_V4_CLIENT='$BASE_URL_API_V4_CLIENT' \
+                        -e BASE_URL_API_V4='$BASE_URL_API_V4' \
+                        -e BASE_SSO_JABAR='$BASE_SSO_JABAR' \
+                        -e SSO_JABAR_CLIENT_ID='$SSO_JABAR_CLIENT_ID' \
+                        --network global-network \
+                        --name simawas-next \
+                        simawas-next:${env.commitIDDev}" 
+
+                        updateGitlabCommitStatus name: 'docker-run', state: 'success'
+                    } catch (err) {
+                        currentBuild.result = 'FAILURE'
+                        updateGitlabCommitStatus name: 'docker-run', state: 'failed'
+                        error "Failed Docker Run: ${err}"
+                    }
+                }
+            } 
+        }
+
+        stage('Delete Docker Images') {
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        try{
+                            updateGitlabCommitStatus name: 'docker-delete-image', state: 'running'
+                            // Delete the images
+                            sh """
+                            docker images --filter=reference='simawas-next:dev-*' --format "{{.Repository}}:{{.Tag}}" | sort | tail -n +4 | xargs -I {} docker rmi {}
+                            """
+                            updateGitlabCommitStatus name: 'docker-delete-image', state: 'success'
+                        }catch (Exception err) {
+                            updateGitlabCommitStatus name: 'docker-delete-image', state: 'success'
+                            error "Failed Delete Docker Images: ${err}"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Docker Image Prune') {
+            steps { 
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        try{
+                            updateGitlabCommitStatus name: 'docker-image-prune', state: 'running'
+                            sh "/usr/bin/docker image prune -f"
+                            updateGitlabCommitStatus name: 'docker-image-prune', state: 'success'
+                        }catch (Exception err) {
+                            updateGitlabCommitStatus name: 'docker-image-prune', state: 'success'
+                            error "Failed Docker Image Prune: ${err}"
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+}

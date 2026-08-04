@@ -1,0 +1,159 @@
+/* groovylint-disable CompileStatic, DuplicateMapLiteral, DuplicateStringLiteral, LineLength, NestedBlockDepth */
+pipeline {
+    agent any
+
+    options {
+        gitLabConnection('dev-simawas-jenkins')
+    }
+
+    environment {
+        NEXT_PUBLIC_BASE_URL = 'http://10.200.25.2:3000/'
+        NODE_ENV = 'development'
+        GENERATE_SOURCEMAP = false
+        BASE_URL = "https://dev-simawas.jabarprov.go.id/"
+        BASE_URL_API_V1 = "https://dev-simawas.jabarprov.go.id/api/v1"
+        BASE_URL_API_V2 = "https://dev-simawas.jabarprov.go.id/api/v2"
+        BASE_URL_API_V1_CLIENT = "https://dev-simawas.jabarprov.go.id/api/client/v1"
+        BASE_URL_API_V2_CLIENT = "https://dev-simawas.jabarprov.go.id/api/client/v2"
+        BASE_URL_API_V3_CLIENT = "https://dev-simawas.jabarprov.go.id/api/client/v3"
+        BASE_URL_API_V4_CLIENT = "https://dev-simawas.jabarprov.go.id/api/client/v4"
+        BASE_SSO_JABAR='https://sso.jabarprov.go.id/realms/ssojabar'
+        SSO_JABAR_CLIENT_ID='dev-simawas'
+        PORT = 3000
+    }
+
+    stages {
+        stage('Prepare') {
+            steps {
+                script {
+                    env.build = false
+                    env.prod = false
+                    env.dev = false
+
+                    updateGitlabCommitStatus(name: 'Jenkins', state: 'pending')
+                    // if (env.BRANCH_NAME == 'production') {
+                    //     echo "detected branch production"
+                    //     env.build = true
+                    //     env.prod = true
+                    // }
+                    if (env.BRANCH_NAME == 'dev') {
+                        echo 'detected branch dev'
+                        env.build = true
+                        env.dev = true
+                    }
+                }
+            }
+        }
+        stage('Test') {
+            when {
+                expression {
+                    return env.build == 'false' && env.dev == 'false'
+                }
+            }
+
+            agent {
+                docker {
+                    image 'node:18-alpine3.18'
+                    args '-u root'  // Pass the argument to run as root within the Docker container
+                }
+            }
+            steps {
+                script {
+                    echo 'Running test cases'
+                    echo 'env.build = ' + env.build
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        sh 'npm config set cache /.npm'  // Set the npm cache directory to /.npm within the container
+                        sh 'yarn config set cache-folder /.yarn'  // Set the npm cache directory to /.npm within the container
+                        // Install dependencies with pnpm
+                        sh 'yarn install'
+
+                        // Run tests
+                        sh 'yarn run test'
+                    }
+                    if (env.build != true) {
+                        updateGitlabCommitStatus(name: 'Jenkins', state: 'success')
+                    }
+                }
+            }
+        }
+        stage('Develop Stop Container') {
+            when {
+                expression {
+                    return env.build == 'true' && env.dev == 'true'
+                }
+            }
+
+            steps {
+                echo 'env.build ' + env.build
+                echo 'env.dev ' + env.dev
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh '/usr/bin/docker stop simawas-next'
+                }
+            }
+        }
+        stage('Develop Remove Container') {
+            when {
+                expression {
+                    return env.build == 'true' && env.dev == 'true'
+                }
+            }
+
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh '/usr/bin/docker rm simawas-next'
+                }
+            }
+        }
+        stage('Develop Remove Image') {
+            when {
+                expression {
+                    return env.build == 'true' && env.dev == 'true'
+                }
+            }
+
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh '/usr/bin/docker rmi simawas-next'
+                }
+            }
+        }
+        stage('Develop Docker Image Prune') {
+            when {
+                expression {
+                    return env.build == 'true' && env.dev == 'true'
+                }
+            }
+
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh '/usr/bin/docker image prune -f'
+                }
+            }
+        }
+        stage('Develop Docker Build Dev Tag Latest') {
+            when {
+                expression {
+                    return env.build == 'true' && env.dev == 'true'
+                }
+            }
+
+            steps {
+                sh '/usr/bin/docker build -t simawas-next:latest -f Dockerfile.advance .'
+            }
+        }
+        stage('Develop Docker Run Tag Latest') {
+            when {
+                expression {
+                    return env.build == 'true' && env.dev == 'true'
+                }
+            }
+
+            steps {
+                sh "/usr/bin/docker run -d --restart always -e NEXT_PUBLIC_BASE_URL='${NEXT_PUBLIC_BASE_URL}' -e NODE_ENV='${NODE_ENV}' -e GENERATE_SOURCEMAP='${GENERATE_SOURCEMAP}' -e BASE_URL='${BASE_URL}' -e BASE_URL_API_V1='${BASE_URL_API_V1}' -e BASE_URL_API_V2='${BASE_URL_API_V2}' -e BASE_URL_API_V1_CLIENT='${BASE_URL_API_V1_CLIENT}' -e BASE_URL_API_V2_CLIENT='${BASE_URL_API_V2_CLIENT}' -e BASE_SSO_JABAR='${BASE_SSO_JABAR}' -e SSO_JABAR_CLIENT_ID='${SSO_JABAR_CLIENT_ID}' -p ${PORT}:${PORT} --network global-network --name simawas-next simawas-next:latest"
+                script {
+                    updateGitlabCommitStatus(name: 'Jenkins', state: 'success')
+                }
+            }
+        }
+    }
+}

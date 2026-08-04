@@ -1,0 +1,35 @@
+[{
+  "_id": {
+    "$oid": "621db9273b848b512cbc9a7f"
+  },
+  "name": "Elco",
+  "email": "elco@gmail.com",
+  "password": "U2FsdGVkX1/XpnS83pCgjS4TtSZhHwADoFMw+oTmjfE=",
+  "group_id": {
+    "$oid": "62158d3b5e47f8e9ca669088"
+  },
+  "group_child_id": {
+    "$oid": "621da9ed69a210805c45dd1a"
+  },
+  "role_id": {
+    "$oid": "6215902d5e47f8e9ca66909b"
+  },
+  "verified": true
+},{
+  "_id": {
+    "$oid": "621dd60b3b848b512cbc9a80"
+  },
+  "name": "dkpp",
+  "email": "dkpp@gmail.com",
+  "password": "U2FsdGVkX1+WUixn6GSoh3COsnmMUXjoyf70t9IPYdU=",
+  "group_id": {
+    "$oid": "62158d3b5e47f8e9ca669088"
+  },
+  "group_child_id": {
+    "$oid": "621da9ed69a210805c45dd1a"
+  },
+  "role_id": {
+    "$oid": "62158fa45e47f8e9ca669097"
+  },
+  "verified": true
+}]

@@ -1,0 +1,12 @@
+### SPEC SERVER DEV SIMAWAS
+    CPUs : 1 core - 2.4GHz
+    RAM : 1.8 GB
+#### Strategy dev resource split docker :
+
+    1/5 => 2 for OS
+    1.8/5 =? 2 for OS
+
+#### Final Resource
+
+    CPUs / Container = 0.2
+    RAM / Container = 360MB

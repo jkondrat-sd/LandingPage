@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://simawas.jabarprov.go.id
+
+# Sitemaps
+Sitemap: https://simawas.jabarprov.go.id/sitemap.xml

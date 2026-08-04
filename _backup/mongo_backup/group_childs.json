@@ -1,0 +1,16 @@
+[{
+  "_id": {
+    "$oid": "621da9ed69a210805c45dd1a"
+  },
+  "name": "Konsumsi",
+  "address": "",
+  "description": "Bidang Konsumsi dari DKPP",
+  "email": "",
+  "fax": "",
+  "group_child_enum": 1,
+  "logo_url": "",
+  "phone_number": "",
+  "group_id": {
+    "$oid": "62158d3b5e47f8e9ca669088"
+  }
+}]
