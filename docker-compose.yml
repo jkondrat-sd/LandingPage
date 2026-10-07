@@ -40,7 +40,7 @@ services:
 
   minio:
     container_name: minio-simawas-next
-    image: bitnami/minio:latest
+    image: soldevelo/minio:latest
     volumes:
       - ./data1-1:/minio1
     ports:
